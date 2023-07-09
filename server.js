@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const passport = require("passport");
 const { v4: uuidv4 } = require("uuid");
 const bodyParser = require("body-parser");
-const auth = require("./auth/auth");
+// const auth = require("./auth/auth");
 const authRouter = require("./routes/authRouter");
 const projectRouter = require("./routes/projectRouter");
 const taskRouter = require("./routes/taskRouter");
@@ -50,16 +50,35 @@ mongoose.connect(process.env.MONGO_URI).then(()=>{
         console.error("MongoDB connection error:", error);
 });
 
+let users = {}
+
 io.on('connection', (socket) => {
     console.log('a user: ' +socket.id + 'has connected');
+    let clientId = socket.id
     socket.on('disconnect', () => {
-        //Update all the data in the user's table:
-      console.log('user ' +socket.id + ' disconnected');
+
+    //Update all the data in the user's table:
+      
+    console.log('user ' +socket.id + ' disconnected');
+    
+        delete users[`${socket.id}`]
+
     });
+
     socket.on("update-table",(initialState)=>{
         console.log(initialState);
     })
+
+    socket.on("update-table", (socket) => {
+        users =  { ...users, [clientId]: { clientData : socket.client_data }} 
+        console.log(users)
+    })
+
+
 });
+
+
+
 
 app.get("/",(req,res)=>{
     res.sendFile(__dirname + "/client/index.html")
