@@ -7,7 +7,6 @@ const { ensureAuth } = require("../auth/auth");
 const User = require("../models/User");
 const Project = require("../models/Project");
 
-
 router.get("/", async (req, res) => {
   try {
     const id = req.body.id;
@@ -56,11 +55,11 @@ router.delete("/delete",async (req,res)=>{
       res.send("No such project exists");
     }
     else{
-      res.send("Project deleted successfully!");  
+      res.send("Project deleted successfully!");
     }
   }catch(err){
     res.status(500).send(err);
   }
-})
+});
 
 module.exports = router;

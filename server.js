@@ -9,6 +9,21 @@ const bodyParser = require("body-parser");
 const auth = require("./auth/auth");
 const authRouter = require("./routes/authRouter");
 const projectRouter = require("./routes/projectRouter");
+const taskRouter = require("./routes/taskRouter");
+const cors = require("cors");
+
+app.use(cors({
+    origin: "http://localhost:5173/",
+}));
+
+//Socket.io
+const http = require("http");
+const server = http.createServer(app);
+// const { Server } = require("socket.io");
+const io = require("socket.io")(server,{
+    cors: true, 
+    origins: ["http://localhost:5173/"]
+})
 
 app.use(
     session({
@@ -18,7 +33,7 @@ app.use(
     //   cookie: { maxAge: 1000 * 60 * 60 * 24 },
     })
 );
-  
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -26,6 +41,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/auth",authRouter);
 app.use("/projects",projectRouter);
+app.use("/projects/tasks",taskRouter);
 
 mongoose.connect(process.env.MONGO_URI).then(()=>{
     console.log("Connected to MongoDB")
@@ -34,6 +50,21 @@ mongoose.connect(process.env.MONGO_URI).then(()=>{
         console.error("MongoDB connection error:", error);
 });
 
-app.listen(process.env.PORT || 3030, (req,res)=>{
+io.on('connection', (socket) => {
+    console.log('a user: ' +socket.id + 'has connected');
+    socket.on('disconnect', () => {
+        //Update all the data in the user's table:
+      console.log('user ' +socket.id + ' disconnected');
+    });
+    socket.on("update-table",(initialState)=>{
+        console.log(initialState);
+    })
+});
+
+app.get("/",(req,res)=>{
+    res.sendFile(__dirname + "/client/index.html")
+})
+
+server.listen(process.env.PORT || 3030, (req,res)=>{
     console.log(`Server is running`);
 })
