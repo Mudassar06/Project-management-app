@@ -69,9 +69,11 @@ io.on('connection', (socket) => {
         console.log(initialState);
     })
 
-    socket.on("update-table", (socket) => {
-        users =  { ...users, [clientId]: { clientData : socket.client_data }} 
+    socket.on("update-table", (data) => {
+        users =  { ...users, [clientId]: { clientData : data.client_data }} 
         console.log(users)
+
+        socket.broadcast.emit('updated-table',data.table)
     })
 
 
